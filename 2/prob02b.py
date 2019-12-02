@@ -1,9 +1,10 @@
+with open("input.txt") as f:
+    data = [int(x) for x in f.read().split(",")]
+
 for j in range(100):
     for k in range(100):
-
-        f = open("input.txt")
-
-        pos = [int(x) for x in f.read().split(",")]
+        pos = data[::]
+        
         pos[1] = j
         pos[2] = k
 
