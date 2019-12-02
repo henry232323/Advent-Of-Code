@@ -1,3 +1,4 @@
+defmodule Prob01a do
   def sum(file) do
     file
       |> Enum.map(&Integer.parse/1)
