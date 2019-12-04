@@ -2,14 +2,14 @@ mx = 765869
 mn = 234208
 
 def is_valid(n):
-    n = "X" + str(n) + "X"
-    for x in range(1, len(n)-2):
+    n = str(n)
+    for x in range(len(n)-1):
         if n[x] == n[x + 1]:
             break
     else:
         return False
 
-    for x in range(1, len(n)-2):
+    for x in range(len(n)-1):
         if int(n[x]) > int(n[x+1]):
             return False
 
