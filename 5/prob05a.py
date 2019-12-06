@@ -1,11 +1,11 @@
-f = open("input.txt")
+f = open("input0.txt")
 
-pos = [int(x) for x in f.read().split(",")]
-print(len(pos))
+pos = [int(x.strip()) for x in f.read().split(",")]
 
 store = None
 i = 0
 while True:
+    #print(i, pos[i])
     inst = pos[i] % 100
 
     cmode = pos[i] // 100 % 2
@@ -35,6 +35,8 @@ while True:
         print(pos[pos[i + 1]])
         i += 2
     elif inst == 5:
+        #print(cval, bval)
+        #print("CTR: ", cval)
         if cval != 0:
             i = bval
         else:
