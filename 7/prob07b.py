@@ -2,7 +2,7 @@ import itertools
 import collections
 import asyncio
 
-f = open("timput.txt")
+f = open("input.txt")
 tpos = [int(x.strip()) for x in f.read().split(",")]
 
 
@@ -34,19 +34,16 @@ async def run_program(id, inq, outq):
             pos[pos[i + 3]] = cval * bval
             i += 4
         elif inst == 3:
-            #print(id, inq._queue, outq._queue, "get b")
+            print(id, inq._queue, outq._queue, "get b")
             pos[pos[i + 1]] = int(await inq.get())
-            #print(id, inq._queue, outq._queue, "get a")
-            # print(f"set pos {pos[i + 1]} to {pos[pos[i + 1]]}")
+            print(id, inq._queue, outq._queue, "get a")
             i += 2
         elif inst == 4:
-            #print(id, inq._queue, outq._queue, "put b")
+            print(id, inq._queue, outq._queue, "put b")
             await outq.put(pos[pos[i + 1]])
-            #print(id, inq._queue, outq._queue, "put a")
+            print(id, inq._queue, outq._queue, "put a")
             i += 2
         elif inst == 5:
-            # print(cval, bval)
-            # print("CTR: ", cval)
             if cval != 0:
                 i = bval
             else:
@@ -65,9 +62,8 @@ async def run_program(id, inq, outq):
         else:
             raise ValueError("Invalid instruction: " + str(inst))
 
-    if id == 4:
-        print("DONE!")
-        results.append(outq.get_nowait())
+    print("DONE!")
+    results.append(outq._queue)
     print(len(tasks), len(results))
 
 
@@ -76,7 +72,6 @@ tasks = []
 
 async def main():
     for val in itertools.permutations([5, 6, 7, 8, 9], 5):
-        # print("NEXT ITER!")
         qs = []
         for i in range(5):
             qs.append(asyncio.Queue())
@@ -86,8 +81,8 @@ async def main():
             print(qs[i]._queue)
         for i in range(5):
             t = asyncio.create_task(run_program(i, qs[i - 1 % 5], qs[i]))
-            if i == 4:
-                tasks.append(t)
+            #if i == 4:
+            tasks.append(t)
 
     await asyncio.gather(*tasks)
     print(max(results))
