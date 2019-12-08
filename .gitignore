@@ -197,3 +197,4 @@ fabric.properties
 
 # mac shit
 .DS_STORE
+.idea/
