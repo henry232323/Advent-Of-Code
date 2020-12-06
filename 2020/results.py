@@ -170,3 +170,33 @@ def day5_2():
         ids.append(sid)
 
     return set(range(min(ids), max(ids) + 1)) - set(ids)
+
+def day6_1():
+    f = open("input6.txt")
+    c = 0
+    while True:
+        entries = set()
+        while (line := f.readline().strip()):
+            entries.update(line)
+        # print(entries)
+        if not entries:
+            break
+        c += len(entries)
+    return c
+
+def day6_2():
+    f = open("input6.txt")
+    c = 0
+    while True:
+        entries = None
+        while (line := (cline := f.readline()).strip()):
+            if entries is None:
+                entries = set(line)
+            else:
+                entries = entries & set(line)
+        #print(len(entries), entries)
+        c += len(entries)
+        if not cline:
+            break
+        #print(entries)
+    return c
