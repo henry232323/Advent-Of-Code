@@ -178,7 +178,6 @@ def day6_1():
         entries = set()
         while (line := f.readline().strip()):
             entries.update(line)
-        # print(entries)
         if not entries:
             break
         c += len(entries)
@@ -194,9 +193,62 @@ def day6_2():
                 entries = set(line)
             else:
                 entries = entries & set(line)
-        #print(len(entries), entries)
         c += len(entries)
         if not cline:
             break
-        #print(entries)
     return c
+
+from collections import defaultdict
+
+def day7_1_traverse(bags, fc, bagsdict):
+    for bag in bags:
+        if bag in fc:
+            continue
+        else:
+            fc.add(bag)
+            day7_1_traverse(bagsdict[bag], fc, bagsdict)
+            
+
+def day7_1():
+    f = open("input7.txt").read().split("\n")
+    bags = defaultdict(list)
+    for line in f:
+        if not line: continue
+        
+        k, vs = line.split("contain")
+        k = k.strip()
+        vs = [v.strip().strip(".") for v in vs.split(",")]
+        res = []
+        for v in vs:
+            if v[0].isdigit():
+                n, b = v.split(' ', 1)
+                bags[b.rstrip('s')].append(k.rstrip('s'))
+
+    fc = set()
+    day7_1_traverse(bags['shiny gold bag'], fc, bags)
+
+    return len(fc)
+
+def day7_2_traverse(bagsdict, bagdata):
+    count = 1
+    for n, bag in bagdata:
+        count += n * day7_2_traverse(bagsdict, bagsdict[bag])
+    return count
+
+def day7_2():
+    f = open("input7.txt").read().split("\n")
+    bags = {}
+    for line in f:
+        if not line: continue
+        
+        k, vs = line.split("contain")
+        k = k.strip()
+        vs = [v.strip().strip(".") for v in vs.split(",")]
+        res = []
+        for v in vs:
+            if v[0].isdigit():
+                n, b = v.split(' ', 1)
+                res.append((int(n), b.rstrip('s')))
+        bags[k.rstrip('s')] = res
+
+    return day7_2_traverse(bags, bags['shiny gold bag']) - 1
