@@ -252,3 +252,55 @@ def day7_2():
         bags[k.rstrip('s')] = res
 
     return day7_2_traverse(bags, bags['shiny gold bag']) - 1
+
+def day8_1():
+    f = open("input8.txt").read().split("\n")
+    args = [line.split(" ") for line in f]
+    acc = 0
+    pt = 0
+    run = set()
+    while pt < len(args):
+        inst, arg = args[pt]
+        if pt in run:
+            return acc
+        run.add(pt)
+        if inst == "acc":
+            acc += int(arg)
+            pt += 1
+        elif inst == "nop":
+            pt += 1
+        elif inst == "jmp":
+            pt += int(arg)
+
+    return acc
+
+import copy
+def day8_2():
+    f = open("input8.txt").read().split("\n")
+    args = [line.split(" ") for line in f if line]
+    for i, (ninst, narg) in enumerate(args):
+        nargs = copy.deepcopy(args)
+        if ninst == "acc":
+            continue
+        elif ninst == "nop":
+            nargs[i][0] = "jmp"
+        elif ninst == "jmp":
+            nargs[i][0] = "nop"
+            
+        acc = 0
+        pt = 0
+        run = set()
+        while pt < len(nargs):
+            inst, arg = nargs[pt]
+            if pt in run:
+                break
+            run.add(pt)
+            if inst == "acc":
+                acc += int(arg)
+                pt += 1
+            elif inst == "nop":
+                pt += 1
+            elif inst == "jmp":
+                pt += int(arg)
+        else:
+            return acc
