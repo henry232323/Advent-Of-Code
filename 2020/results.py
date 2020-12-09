@@ -308,7 +308,7 @@ def day8_2():
 def day9_1():
     nums = [int(x) for x in open("input9.txt").read().split("\n") if x]
     for i in range(25, len(nums)):
-        pn = nums[i-25:i]
+        pn = set(nums[i-25:i])
         for num in pn:
             if nums[i] - num in pn:
                 break
