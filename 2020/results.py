@@ -323,3 +323,40 @@ def day9_2():
             pn = nums[i:j]
             if sum(pn) == cn:
                 return max(pn) + min(pn)
+
+def day10_1():
+    nums = sorted(int(x.strip()) for x in open("input10.txt") if x.strip())
+    nums.insert(0, 0)
+    nums.append(nums[-1] + 3)
+    sets = zip(nums[:-1], nums[1:])
+    ac, bc = 0, 0
+    for a, b in sets:
+        if b - a == 1:
+            ac += 1
+        if b - a == 3:
+            bc += 1
+
+    return ac * bc
+
+
+def day10_2_traverse(index, opts, account):
+    if index in account:
+        return account[index]
+    if index >= len(opts) - 1:
+        return 1
+    count = 0
+    dindex = index + 1
+    while dindex != len(opts) and opts[dindex] - opts[index] in (1, 2, 3):
+        count += day10_2_traverse(dindex, opts, account)
+        dindex += 1
+
+    if index not in account:
+        account[index] = count
+
+    return count
+
+def day10_2():
+    nums = sorted(int(x.strip()) for x in open("input10.txt") if x.strip())
+    nums.insert(0, 0)
+    nums.append(nums[-1] + 3)
+    return day10_2_traverse(0, nums, {})
