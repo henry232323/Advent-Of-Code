@@ -360,3 +360,78 @@ def day10_2():
     nums.insert(0, 0)
     nums.append(nums[-1] + 3)
     return day10_2_traverse(0, nums, {})
+
+import numpy as np
+
+def adj(i, j, m, n):
+    adjacent_indices = []
+    if i > 0:
+        adjacent_indices.append((i-1,j))
+    if i+1 < m:
+        adjacent_indices.append((i+1,j))
+    if j > 0:
+        adjacent_indices.append((i,j-1))
+    if j+1 < n:
+        adjacent_indices.append((i,j+1))
+    return adjacent_indices
+
+def pr(*args):
+    print(*args)
+    return args
+
+def day11_1():
+    k = {".": 0, "L": 1, "#": 2}
+    maps = np.array([[k[y] for y in x] for x in open("input11.txt").read().split("\n") if x])
+    last = None
+    current = maps
+    while not np.array_equal(last, current):
+        last = current
+        current = current.copy()
+        for i in range(len(maps)):
+            for j in range(len(maps[i])):
+                if last[i][j] == 1:
+                    if (last[max(0, i-1):i+2, max(0, j-1):j+2] == 2).sum() == 0:
+                        current[i][j] = 2
+                elif last[i][j] == 2:
+                    if (last[max(0, i-1):i+2, max(0, j-1):j+2] == 2).sum() >= 5:
+                        current[i][j] = 1
+        
+    return (last == 2).sum()
+
+def vindex(index, arr):
+    return 0 <= index[0] < len(arr) and 0 <= index[1] < len(arr[0])
+
+def day11_2():
+    dirs = [(0,1), (1,1), (1,0), (1,-1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+    k = {".": 0, "L": 1, "#": 2}
+    maps = np.array([[k[y] for y in x] for x in open("input11.txt").read().split("\n") if x])
+    last = None
+    current = maps
+    while not np.array_equal(last, current):
+        last = current
+        current = current.copy()
+        for i in range(len(maps)):
+            for j in range(len(maps[i])):
+                if last[i, j] == 2:
+                    ct = 0
+                    for dir in dirs:
+                        cp = np.array([i, j]) + dir
+                        while vindex(cp, maps) and last[tuple(cp)] not in (1, 2):
+                            cp += dir
+                        if vindex(cp, maps) and last[tuple(cp)] == 2:
+                            ct += 1
+                    if ct >= 5:
+                        current[i, j] = 1
+                if last[i, j] == 1:
+                    ct = 0
+                    for dir in dirs:
+                        cp = np.array([i, j]) + dir
+                        while vindex(cp, maps) and last[tuple(cp)] not in (1, 2):
+                            cp += dir
+                        if vindex(cp, maps) and last[tuple(cp)] == 2:
+                            ct += 1
+                    if ct == 0:
+                        current[i, j] = 2
+                        
+        
+    return (current == 2).sum()
