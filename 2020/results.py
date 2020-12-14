@@ -488,3 +488,121 @@ def day12_2():
             wayp[:] = round(dp.real), round(dp.imag)
 
     return abs(int(ship[0])) + abs(int(ship[1]))
+
+def day13_1():
+    inst = [x for x in open("input13.txt").read().split() if x]
+    ctime = int(inst[0])
+    rest = inst[1].split(',')
+    es = []
+    for bus in rest:
+        if bus == 'x':
+            continue
+        else:
+            bid = int(bus)
+            e = (ctime//(bid) + 1) * bid
+            es.append((e, bid))
+            
+    mes = min(es)
+    return (mes[0] - ctime) * mes[1]
+
+from functools import reduce
+
+def chinese_remainder(n, a):
+    sum = 0
+    prod = reduce(lambda a, b: a*b, n)
+    for n_i, a_i in zip(n,a):
+        p=prod / n_i
+        sum += a_i * mul_inv(p, n_i) * p
+    return sum % prod
+
+def mul_inv(a, b):
+    b0 = b
+    x0, x1 = 0, 1
+    if b == 1:
+        return 1
+    while a > 1:
+        q = a // b
+        a, b = b, a % b
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0:
+        x1 += b0
+    return x1
+
+def day13_2():
+    inst = [x for x in open("input13.txt").read().split() if x]
+    ctime = int(inst[0])
+    rest = inst[1].split(',')
+
+    nums = []
+    for i, r in enumerate(rest):
+        if r != 'x':
+            nums.append((int(r), len(rest) - i + 1))
+
+    d = list(zip(*nums))
+    return chinese_remainder(*d) - len(rest)
+
+import re
+def day14_1():
+    inst = [x for x in open("input14.txt").read().split("\n") if x]
+    mem = dict()
+    for line in inst:
+        if line.startswith("mask"):
+            mask = line.split("= ")[1]
+            continue
+        m = re.match(r"mem\[(\d+)\] = (\d+)", line)
+        memid, value = m.groups()
+        nv = list(bin(int(value))[2:].zfill(len(mask)))
+        for i in range(len(mask)-1, -1, -1):
+            if mask[i] == 'X':
+                continue
+            nv[i] = mask[i]
+
+        mem[memid] = int("".join(nv), 2)
+
+    return sum(mem.values())
+
+def day14_2():
+    inst = [x for x in open("input14.txt").read().split("\n") if x]
+    mem = dict()
+    for line in inst:
+        if line.startswith("mask"):
+            mask = line.split("= ")[1]
+            dmasks = list(mask)
+            xs = mask.count('X')
+            masks = []
+            #print("MK" + mask)
+            for i in range(2**xs):
+                vs = list(bin(i)[2:].zfill(xs))
+                #print("".join(vs))
+                dupe = dmasks.copy()
+                for j, c in enumerate(dupe):
+                    if c == 'X':
+                        dupe[j] = str( int(vs.pop(0)) + 2)
+
+                #print("".join(dupe))
+                masks.append("".join(dupe))
+                
+            continue
+        
+        m = re.match(r"mem\[(\d+)\] = (\d+)", line)
+        memid, value = m.groups()
+        #print('M', bin(int(memid))[2:].zfill(len(mask)))
+        for dmask in masks:
+            nv = list(bin(int(memid))[2:].zfill(len(dmask)))
+            for ir in range(len(dmask)-1, -1, -1):
+                if dmask[ir] == '0':
+                    continue
+                if dmask[ir] == '1':
+                    nv[ir] = dmask[ir]
+                if dmask[ir] == '2':
+                    nv[ir] = '0'
+                if dmask[ir] == '3':
+                    nv[ir] = '1'
+                
+            #print('V', "".join(nv))
+            mem[int("".join(nv), 2)] = int(value)
+
+    #print(mem)
+    return sum(mem.values())
+
+print(day14_2())
