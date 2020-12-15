@@ -629,5 +629,4 @@ def day15_2():
 
     return inst[-2]
 
-print(day15_1())
 print(day15_2())
