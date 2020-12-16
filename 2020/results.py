@@ -629,4 +629,113 @@ def day15_2():
 
     return inst[-2]
 
-print(day15_2())
+def day16_1():
+    inst = open("input16.txt").read().split('\n')
+
+    fields = dict()
+    i = 0
+    
+    r = "(.+): (\d+)-(\d+) or (\d+)-(\d+)"
+    while (line := inst[i]):
+        m = re.match(r, line)
+        g = m.groups()
+
+        fields[g[0]] = [
+            range(int(g[1]),
+                  int(g[2]) + 1
+            ),
+            range(
+                int(g[3]),
+                int(g[4]) + 1
+            )
+        ]
+        i += 1
+
+    i += 2
+    while (line := inst[i]):
+        i += 1
+
+    i += 2
+    ival = list()
+    while (line := inst[i]):
+        vals = [int(x) for x in line.split(",")]
+        for val in vals:
+            if all(val not in v[0] and val not in v[1] for v in fields.values()):
+                ival.append(val)
+
+        i += 1
+
+    return sum(ival)
+            
+    
+import functools
+def day16_2():
+    inst = open("input16.txt").read().split('\n')
+
+    fields = dict()
+    i = 0
+    
+    r = "(.+): (\d+)-(\d+) or (\d+)-(\d+)"
+    while (line := inst[i]):
+        m = re.match(r, line)
+        g = m.groups()
+
+        fields[g[0]] = [
+            range(int(g[1]),
+                  int(g[2]) + 1
+            ),
+            range(
+                int(g[3]),
+                int(g[4]) + 1
+            )
+        ]
+        i += 1
+
+    i += 2
+    
+    vvals = [set(fields.keys()) for i in range(len(fields))]
+    def do_line(line):
+        vals = [int(x) for x in line.split(",")]
+        kvv = []
+        for r, val in enumerate(vals):
+            vv = set()
+            for f, (range1, range2) in fields.items():
+                if val in range1 or val in range2:
+                    vv.add(f)
+
+            kvv.append(vv)
+
+            if not vv:
+                return
+            
+        else:
+            for d, s2 in enumerate(kvv):
+                vvals[d] = vvals[d] & s2
+
+            checked = []
+            while any(((len(vvals[r]) == 1) and (r not in checked)) for r in range(len(vvals))):
+                xd = next(r for r in range(len(vvals)) if len(vvals[r]) == 1 and (r not in checked))
+                checked.append(xd)
+                for r in range(len(vvals)):
+                    if r == xd:
+                        continue
+                    vvals[r] -= vvals[xd]
+                
+
+    
+    while (line := inst[i]):
+        mt = [int(x) for x in line.split(',')]
+        do_line(line)
+        i += 1
+
+    i += 2
+
+    while (line := inst[i]):
+        do_line(line)
+        
+        i += 1
+
+    myvals = [mt[i] for i, fields in enumerate(vvals) if next(iter(fields)).startswith('departure')]
+    return functools.reduce((lambda x, y: x * y), myvals)
+
+print(day16_2())
