@@ -738,4 +738,148 @@ def day16_2():
     myvals = [mt[i] for i, fields in enumerate(vvals) if next(iter(fields)).startswith('departure')]
     return functools.reduce((lambda x, y: x * y), myvals)
 
-print(day16_2())
+def mhd(p1, p2):
+    return (np.array(p1) - np.array(p2)).abs().sum()
+
+def day17_1():
+    inst = [x for x in open("input17.txt").read().split('\n') if x]
+    gmap = {}
+    gmap = np.zeros((len(inst), len(inst[0]), 1))
+    for i in range(len(inst)):
+        for j in range(len(inst[i])):
+            gmap[j,i,0] = 0 if inst[i][j] == '.' else 1
+
+    for b in range(6):
+        ngm = np.pad(gmap, ((1,1),(1,1),(1,1)), mode='constant', constant_values=0)
+        
+        for coord in np.ndindex(ngm.shape):
+            nearby = gmap[tuple(slice(max(0, x-2), min(x+1, gmap.shape[i])) for i, x in enumerate(coord))]
+            nearby = nearby.sum()
+            
+            try:
+                nearby -= gmap[tuple(slice(x-1, x) for x in coord)][0][0][0]
+            except:
+                pass
+            
+            if nearby == 3:
+                ngm[coord] = 1
+            else:
+                if nearby not in (2,3):
+                    ngm[coord] = 0
+
+        gmap = ngm
+
+    return gmap.sum()
+
+def day17_2():
+    inst = [x for x in open("input17.txt").read().split('\n') if x]
+    gmap = {}
+    gmap = np.zeros((len(inst), len(inst[0]), 1, 1))
+    for i in range(len(inst)):
+        for j in range(len(inst[i])):
+            gmap[j,i,0,0] = 0 if inst[i][j] == '.' else 1
+
+    for b in range(6):
+        ngm = np.pad(gmap, ((1,1),(1,1),(1,1),(1,1)), mode='constant', constant_values=0)
+        
+        for coord in np.ndindex(ngm.shape):
+            nearby = gmap[tuple(slice(max(0, x-2), min(x+1, gmap.shape[i])) for i, x in enumerate(coord))]
+            nearby = nearby.sum()
+            
+            try:
+                nearby -= gmap[tuple(slice(x-1, x) for x in coord)][0][0][0][0]
+            except:
+                pass
+            
+            if nearby == 3:
+                ngm[coord] = 1
+            else:
+                if nearby not in (2,3):
+                    ngm[coord] = 0
+
+        gmap = ngm
+
+    return gmap.sum()
+
+def evaluate(expr):
+    expr = expr.strip()
+    stack = []
+    cval = None
+    expr = expr.replace("(", "( ").replace(")", " )")
+    tokens = expr.split()
+    operator = None
+    for token in tokens:
+        if token.isdigit():
+            if cval is None:
+                cval = int(token)
+                continue
+            if operator == "*":
+                cval *= int(token)
+            else:
+                cval += int(token)
+        elif token == "(":
+            stack.append((cval, operator))
+            cval = None
+        elif token == ")":
+            nc, nop = stack.pop()
+            if nop == "*":
+                cval = (nc if nc is not None else 1) * cval
+            else:
+                cval = (nc if nc is not None else 0) + cval
+
+        else:
+            operator = token
+
+    return cval
+
+def day18_1():
+    exprs = [x for x in open("input18.txt").read().split("\n") if x]
+    return sum(evaluate(x) for x in exprs)
+
+def evaluate2(expr): # shunting-yard algorithm http://www.martinbroadhurst.com/shunting-yard-algorithm-in-python.html
+    ops = {"*": lambda x, y: int(x) * int(y), "+": lambda x, y: int(x) + int(y)}
+    prec = {"+": 1, "*": 0}
+    expr = expr.strip()
+    stack = []
+    output = []
+    expr = expr.replace("(", "( ").replace(")", " )")
+    tokens = expr.split()
+    for token in tokens:
+        if token.isdigit():
+            output.append(int(token))
+        elif token == '(':
+            stack.append(token)
+        elif token == ')':
+            top = stack[-1] if stack else None
+            while top is not None and top != '(':
+                operator = stack.pop()
+                right = output.pop()
+                left = output.pop()
+                output.append(ops[operator](left, right))
+                              
+                top = stack[-1] if stack else None
+                
+            stack.pop()
+        else:
+            top = stack[-1] if stack else None
+            while top is not None and top not in "()" and prec.get(top) > prec.get(token):
+                operator = stack.pop()
+                right = output.pop()
+                left = output.pop()
+                output.append(ops[operator](left, right))
+                
+                top = stack[-1] if stack else None
+            stack.append(token)
+    while stack:
+        operator = stack.pop()
+        right = output.pop()
+        left = output.pop()
+        output.append(ops[operator](left, right))
+
+    return output[0]
+
+def day18_2():
+    exprs = [x for x in open("input18.txt").read().split("\n") if x]
+    return sum(evaluate2(x) for x in exprs)
+            
+print(day17_2())
