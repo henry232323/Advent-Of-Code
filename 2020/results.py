@@ -10,27 +10,6 @@ def day1_2():
     d = [int(x) for x in f.read().split("\n") if x]
     return next(x * y * z for x, y, z in itertools.product(d, d, d) if x + y +z == 2020)
 
-
-def day1_1opt():
-    return
-"""
-    f = open("input1.txt")
-    nums = []
-    for i, l in enumerate(f): # n
-        n = int(l.strip())
-        while True: # log2(n)
-            if not nums:
-                nums.append(n)
-                break
-            k = nums[i//2]
-            if k == n:
-        
-
-    for i in d: # n
-        if 2020 - i in d: # log2(n)
-            return i * (2020 - i)
-"""
-
 def day2_1():
     c = 0
     for row in open("input2.txt"):
@@ -881,5 +860,171 @@ def evaluate2(expr): # shunting-yard algorithm http://www.martinbroadhurst.com/s
 def day18_2():
     exprs = [x for x in open("input18.txt").read().split("\n") if x]
     return sum(evaluate2(x) for x in exprs)
+
+def procrule(rule, rules, dupes):
+    if rule in dupes:
+        return dupes[rule]
+    
+    dru = []
+    for rpart in rules[rule]:
+        if isinstance(rpart, str):
+            dru.append(rpart)
+        else:
+            for srset in itertools.product(*[procrule(subrule, rules, dupes) for subrule in rpart]):
+                dru.append("".join(srset))
+
+    if rule not in dupes:
+        dupes[rule] = dru
+
+    return dru
             
-print(day17_2())
+    
+def day19_1():
+    rules, lines = open("input19.txt").read().split("\n\n")
+
+    mrules = {}
+    for rule in rules.split("\n"):
+        num, right = rule.split(": ")
+        res = right.split("|")
+        if len(res) == 1 and '"' in res[0]:
+            mrules[int(num)] = [res[0].strip('"')]
+        else:
+            mrules[int(num)] = [[int(x) for x in part.split()] for part in res]
+
+    procrules = procrule(0, mrules, {})
+
+    scount = 0
+    for line in lines.split("\n"):
+        if not line:
+            continue
+
+        if line in procrules:
+            scount += 1
+
+    return scount
+
+def rreduce(inp, r, rules):
+    # make regex for each part
+    # recursively find which rules can be fulfilled, when a rule is not fulfilled
+    # break from that path and instead go with one that can continue to be fulfilled until
+    # the whole line is matched
+    rc = False
+    for rset in rules[r]:
+        if isinstance(rset, str):
+            if rset in inp:
+                yield rset
+
+        else:
+            res = ""
+            for sset in rset:
+                nv = rreduce(inp, sset, rules)
+                for item in nv:
+                    if re.search(item, inp):
+                        if not res:
+                            res = item
+                        else:
+                            res += "|" + item
+                    else:
+                        break
+            yield "(" + res + ")"
+
+    return rc
+
+import regex as re
+from functools import lru_cache
+
+def day19_2():
+    rules, lines = open("input19-1.txt").read().split("\n\n")
+
+    mrules = {}
+    for rule in rules.split("\n"):
+        num, right = rule.split(": ")
+        if num == '8':
+            num, right = "8: 42 | 42 8".split(": ")
+        if num == '11':
+            num, right = "11: 42 31 | 42 11 31".split(": ")
+        res = right.split("|")
+        if len(res) == 1 and '"' in res[0]:
+            mrules[int(num)] = f"""(?<{'t' * (int(num) + 1)}>{res[0].strip('"')})"""
+        else:
+            mrules[int(num)] = "(?<{}>{})".format('t' * (int(num) + 1),
+                "".join("|".join(f"(?&{'t' * (int(x) + 1)})" for x in part.split()) for part in res)
+            )
+
+    for rule, ruleval in mrules.items():
+        mrules[0] = mrules[0].replace(f"(?&{'t' * (int(rule) + 1)})", ruleval)
+        
+
+    scount = 0
+    print(mrules[0])
+    for line in lines.split("\n"):
+        if not line:
+            continue
+
+        if re.fullmatch(mrules[0], line):
+            scount += 1
+            
+    return scount
+
+import copy
+
+def day20_1():
+    sets = open("input20-1.txt").read().strip().split("\n\n")
+    images = {}
+    for s in sets:
+        nline, *imag = s.split("\n")
+        t, id = nline.strip(":").split(" ")
+        images[int(id)] = np.array([list(x) for x in imag])
+
+    sidl = int(pow(len(images), .5))
+
+    for id, center in images.items():
+        nimages = copy.deepcopy(images)
+        ilattice = [[None] * sidl for x in range(sidl)]
+        dlattice = [[None] * sidl for x in range(sidl)]
+        ilattice[sidl//2][sidl//2] = nimages[id]
+        dlattice[sidl//2][sidl//2] = id
+        
+        while any(None in x for x in ilattice):
+            for nid, image in nimages.items():
+                for flip in range(4):
+                    if flip == 0:
+                        pn = image
+                    elif flip in (1, 3):
+                        pn = np.flip(image, 1)
+                    elif flip in (2, 3):
+                        pn = np.flip(image, 1)
+                    for rot in range(4):
+                        nd = np.rot90(pn, rot)
+                        for i in range(len(ilattice)):
+                            for j in range(len(ilattice[i])):
+                                if i > 0 and ilattice[i - 1][j] is not None:
+                                    if not np.all(nd[0, :] == ilattice[i - 1][j][-1, :]): # t
+                                        break
+                                if i < len(ilattice) - 1 and ilattice[i + 1][j] is not None:
+                                    if not np.all(nd[-1, :] == ilattice[i + 1][j][0, :]): # n
+                                        break
+                                    
+                                if j < len(ilattice[i]) - 1 and ilattice[i][j + 1] is not None:
+                                    if not np.all(nd[:, -1] == ilattice[i][j + 1][:, 0]): # r
+                                            break
+                                if j > 0 and ilattice[i][j-1] is not None:
+                                    if not np.all(nd[:, 0] == ilattice[i][j-1][:, -1]): # l
+                                        break
+                            else:
+                                dlattice[i][j] = nid
+                                ilattice[i][j] = nd
+                                break
+                        else:
+                            continue
+                        break
+                else:
+                    continue
+                break
+            print(1, ilattice)
+            print("\n" * 3)
+
+def day21_1():
+    sets = open("input21.txt").read().strip().split("\n\n")
+
+print(day21_1())
